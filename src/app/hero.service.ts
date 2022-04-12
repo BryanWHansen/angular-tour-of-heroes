@@ -24,13 +24,13 @@ export class HeroService {
 
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
-  
+
       // TODO: send the error to remote logging infrastructure
       console.error(error); // log to console instead
-  
+
       // TODO: better job of transforming error for user consumption
       this.log(`${operation} failed: ${error.message}`);
-  
+
       // Let the app keep running by returning an empty result.
       return of(result as T);
     };
@@ -56,6 +56,19 @@ export class HeroService {
       tap(_ => this.log(`updated hero id=${hero.id}`)),
       catchError(this.handleError<any>('updatedHero'))
     )
+  }
+
+  searchHero(term: string): Observable<Hero[]> {
+    if (!term.trim()) {
+      return of([]);
+    }
+    return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
+      tap(
+        x => x.length ?
+        this.log(`found heroes matching ${term}`) : this.log(`no heroes found matching ${term}`),
+        catchError(this.handleError<Hero[]>('serachHeroes', []))
+      )
+    );
   }
 
   private log(message: string) {
